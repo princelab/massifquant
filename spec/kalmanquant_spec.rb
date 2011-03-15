@@ -60,21 +60,21 @@ SINGLE_LC_PEAK =<<END
 END
 
 
-
 # ghost scan properties
 [:IntVar, :MZVar, :MaxIntSqrt, :MaxScanNum, :MaxDataNum, :I, :MZ]
 [4.936164570985432e+07, 5.774199962615967e-07, 1.766446600877026e+02, 18, 4, [1.268376464843750e+04, 2.147245703125000e+04, 3.120333593750000e+04, 2.419581250000000e+04, 1.720981640625000e+04], [7.944052734375000e+02, 7.944046020507812e+02, 7.944047851562500e+02, 7.944033203125000e+02, 7.944050292968750e+02]]
 
-describe "Kalmanquant" do
+describe "Kalmanquant on a single chromatographic peak" do
   before do
-    @centroids = SINGLE_LC_PEAK.each_line.map {|line| line.split(/\s+/).map(&:to_f) }
-    @mzs = [] ;  @intensities = []
-    @centroids.each {|centr| @mzs.push(centr.first) ; @intensities.push(centr.last) }
+    # this simulates the data structure of an entire run (hence the nesting)
+    @ar_of_spectrum = SINGLE_LC_PEAK.each_line.map {|line| line.split(/\s+/).map {|v| [v.to_f] } }
   end
 
   it "tracks a single peak" do
+    peaks = Kalmanquant.find_features(@ar_of_spectrum)
+    peaks.nil?.is false
     p @mzs 
     p @intensities
-    1.is 1
+    ##1.is 1
   end
 end

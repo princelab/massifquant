@@ -1,3 +1,23 @@
+
+module Kalmanquant
+  class Tracker
+    include Enumerable
+    attr_accessor :times
+    attr_accessor :mzs
+    attr_accessor :intensities
+
+    def size ; intensities.size end
+    alias_method :length, :size
+
+    def each(&block)
+      times.zip(mzs, intensities, &block)
+    end
+
+  end
+end
+
+=begin
+
 classdef Tracker7 < handle
    %% Key Properties of Tracker
    % it should be a handle class because it will be passed around a lot. No
@@ -284,6 +304,7 @@ classdef Tracker7 < handle
    end %methods
 end % classdef
 
+=end
 
 
 
