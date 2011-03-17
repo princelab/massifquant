@@ -70,7 +70,7 @@ describe "Kalmanquant on a single chromatographic peak" do
     @ar_of_spectrum = SINGLE_LC_PEAK.each_line.map {|line| line.split(/\s+/).map {|v| [v.to_f] } }
   end
 
-  it "tracks a single peak" do
+  xit "tracks a single peak" do
     peaks = Kalmanquant.find_features(@ar_of_spectrum)
     peaks.nil?.is false
     p @mzs 

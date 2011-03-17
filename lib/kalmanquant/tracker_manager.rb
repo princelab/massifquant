@@ -1,3 +1,119 @@
+require 'set'
+require 'ms/support/binary_search'
+
+
+module Ms
+  class Spectrum
+    Peak = Struct.new(:spectrum, :index) do 
+      def mz
+        self[0].mzs[self[1]]
+      end
+      def intensity
+        self[0].intensities[self[1]]
+      end
+    end
+  end
+end
+
+
+module Kalmanquant
+  class TrackerManager
+    MAX_TRACKER_MISSES = 2
+    MIN_TRACKER_SIZE = 4
+    Match = Struct.new(:tracker, :peak, :distance)
+    attr_accessor :spectra
+
+    def initialize(spectra=[])
+      @spectra = spectra
+      @trackers = []
+    end
+
+    def find_features(max_misses=MAX_TRACKER_MISSES, min_size=MIN_TRACKER_SIZE)
+      is_big_enough = lambda {|tracker| tracker.size >= min_size }
+
+      active_trackers = []
+      tracker_heaven = []
+      #avg_delta_time = @spectra.map(:time).each_cons(2) {|a,b| b-a }.inject(:+) / @spectra.size-1
+      #prev_time = @spectra.first.time - avg_delta_time
+      @spectra.each do |spectrum|
+        #delta_time = spectrum.time - prev_time
+        (matched_trackers, unmatched_trackers, mz_index_set) = partition!(spectrum, active_trackers)
+        (still_alive, dead) = unmatched_trackers.partition {|tracker| tracker.num_missed <= max_misses }
+        (big_enough, died_miserly) = dead.partition &is_big_enough
+        tracker_heaven.push(*big_enough)
+
+        # create a new tracker for each unclaimed mz index
+        new_trackers = []
+        (0...spectrum.size).each do |mz_i|
+          unless mz_index_set.include?(mz_i)
+            new_trackers << Kalmanquant::Tracker.new(peak, 'mz_var_placeholder', 'int_var_placeholder', 'max_int_sqrt_placeholder') )
+          end
+        end
+        # do new predictions for all active trackers
+        (matched_trackers + still_alive).each {|tracker| tracker.predict! }
+        active_trackers = matched_trackers + still_alive + new_trackers
+      end
+      (big_enough, too_small) = active_trackers.partition &is_big_enough
+      tracker_heaven.push(*big_enough)
+    end
+
+    # greedy algorithm based on minimizing match distance and then negative
+    # tracker.size.  returns a set of matching trackers, a list of unmatched
+    # trackers, and the set of taken indices. As a side-effect, updates the
+    # trackers info upon a match or not
+    def partition!(spectrum, trackers)
+      # also sort by confidence size (prefer smaller confidence intervals)
+      sorted_matches = possible_matches(spectrum, trackers).sort_by {|match| [match.distance, match.tracker.confidence_size, -match.tracker.size] }
+      taken_trackers = Set.new
+      taken_peaks = Set.new
+      sorted_matches.each do |match|
+        unless taken_trackers.include?(match.tracker) || taken_peaks.include?(match.peak)
+          peak = match.peak
+          tracker = match.tracker
+          tracker.update!(peak, spectrum.time)  # victory!
+          taken_trackers.add(tracker)
+          taken_peaks.add(peak)
+        end
+      end
+      unmatched = trackers - taken_trackers
+      unmatched.each {|tracker| tracker.missed! }
+      [taken_trackers, unmatched, taken_peaks]
+    end
+
+    # returns an array of matches
+    def possible_matches(spectrum, trackers)
+      mzs = spectrum.mzs
+      intensities = spectrum.intensities
+      # brute force with binary search algorithm
+      possible_matches = []
+      trackers.each do |tracker|
+        lo_mz_i = Ms::Support::BinarySearch.search_lower_boundary(mzs) {|mz| mz <=> tracker.lo_mz }
+        # we use the range to ensure we only need to search the last part of the array
+        if lo_mz_i
+          hi_mz_i = Ms::Support::BinarySearch.search_upper_boundary(mzs, lo_mz_i...mzs.size) {|mz| mz <=> tracker.hi_mz }
+          hi_mz_i -= 1 if hi_mz_i == mzs.size
+        end
+        if lo_mz_i && hi_mz_i
+          (lo_mz_i..hi_mz_i).each do |i|
+            if tracker.in_bounds?(mzs[i], intensities[i])
+              possible_matches << Match.new(tracker, Ms::Spectrum::Peak(spectrum, i), tracker.normalized_distance(mzs[i], intensities[i]))
+            end
+          end
+        end
+      end
+      possible_matches
+    end
+  end
+
+end
+
+
+
+
+
+
+=begin
+
 classdef TrackerManager7 < handle
     %% Makes sure that the current and next scan data points are all
     % accounted for by the trackers. 
@@ -230,3 +346,4 @@ classdef TrackerManager7 < handle
     end
 end %classdef
 
+=end
