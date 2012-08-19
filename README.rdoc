@@ -1,11 +1,11 @@
-= kalmanquant
+= massifquant
 
-Uses Kalman tracking to quantify chromatographic peaks in a bin-less manner.
-Operates on previously centroided data. 
+Uses Kalman tracking to quantify chromatographic peaks in a bin-less manner.  Operates on previously centroided data. 
 
-This is a rewrite of an original implementation by Christopher Conley of a
-work by Aberg et al. ({J Chromatogr A. 2008 May
-23;1192(1):139-46}[http://www.ncbi.nlm.nih.gov/pubmed/18378252]).
+This is an (as of now incomplete) ruby rewrite of an original implementation by Christopher Conley (matlab and C/C++) of a
+work by Aberg et al. ({J Chromatogr A. 2008 May 23;1192(1):139-46}[http://www.ncbi.nlm.nih.gov/pubmed/18378252]).
+
+The canonical massifquant implementation is in C/C++ and is part of {XCMS}[http://metlin.scripps.edu/xcms/], an R package for MS metabolomic analysis.
 
 == Copyright
 
