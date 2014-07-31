@@ -2,10 +2,9 @@
 
 Uses Kalman tracking to quantify chromatographic peaks in a bin-less manner.  Operates on previously centroided data. 
 
-This is an (as of now incomplete) ruby rewrite of an original implementation by Christopher Conley (matlab and C/C++) of a
-work by Aberg et al. ({J Chromatogr A. 2008 May 23;1192(1):139-46}[http://www.ncbi.nlm.nih.gov/pubmed/18378252]).
+This repo is a vastly incomplete) ruby rewrite of the original implementation by Christopher Conley (matlab and C/C++) of a work by Aberg et al. ({J Chromatogr A. 2008 May 23;1192(1):139-46}[http://www.ncbi.nlm.nih.gov/pubmed/18378252]).
 
-The canonical massifquant implementation is in C/C++ and is part of {XCMS}[http://metlin.scripps.edu/xcms/], and is {part of the bioconductor package}[http://bioconductor.org/packages/release/bioc/html/xcms.html] for MS metabolomic analysis.
+The {canonical massifquant implementation}[http://bioconductor.org/packages/release/bioc/html/xcms.html] is in C/C++ and is part of {XCMS}[http://metlin.scripps.edu/xcms/] which is {part of the bioconductor package}[http://www.bioconductor.org/].
 
 == Copyright
 
